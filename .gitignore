@@ -5,3 +5,4 @@ task-crud-kategori
 .env
 .DS_Store
 .oldmain.go
+oldmain.go
