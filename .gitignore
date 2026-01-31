@@ -4,3 +4,4 @@ task-crud-kategori
 *.tmp
 .env
 .DS_Store
+.oldmain.go

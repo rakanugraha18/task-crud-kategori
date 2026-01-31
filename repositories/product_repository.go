@@ -44,13 +44,14 @@ func (repo *ProductRepository) GetAll() ([]models.Product, error) {
 // CREATE PRODUCT
 // =======================
 func (repo *ProductRepository) Create(product *models.Product) error {
-	query := "INSERT INTO products (name, price, stock) VALUES (?, ?, ?)"
+	query := "INSERT INTO products (name, price, stock, category_id) VALUES (?, ?, ?, ?)"
 
 	result, err := repo.db.Exec(
 		query,
 		product.Name,
 		product.Price,
 		product.Stock,
+		product.CategoryID,
 	)
 	if err != nil {
 		return err
@@ -69,14 +70,27 @@ func (repo *ProductRepository) Create(product *models.Product) error {
 // GET PRODUCT BY ID
 // =======================
 func (repo *ProductRepository) GetByID(id int) (*models.Product, error) {
-	query := "SELECT id, name, price, stock FROM products WHERE id = ?"
+	query := `
+	SELECT 
+		p.id, p.name, p.price, p.stock, p.category_id,
+		c.id, c.name, c.description
+		FROM products p
+		JOIN categories c ON p.category_id = c.id
+		WHERE p.id = ?
+	`
 
-	var p models.Product
+	var product models.Product
+	category := &models.Category{}
+
 	err := repo.db.QueryRow(query, id).Scan(
-		&p.ID,
-		&p.Name,
-		&p.Price,
-		&p.Stock,
+		&product.ID,
+		&product.Name,
+		&product.Price,
+		&product.Stock,
+		&product.CategoryID,
+		&category.ID,
+		&category.Name,
+		&category.Description,
 	)
 
 	if err == sql.ErrNoRows {
@@ -86,7 +100,8 @@ func (repo *ProductRepository) GetByID(id int) (*models.Product, error) {
 		return nil, err
 	}
 
-	return &p, nil
+	product.Category = category
+	return &product, nil
 }
 
 // =======================
@@ -95,7 +110,7 @@ func (repo *ProductRepository) GetByID(id int) (*models.Product, error) {
 func (repo *ProductRepository) Update(product *models.Product) error {
 	query := `
 		UPDATE products
-		SET name = ?, price = ?, stock = ?
+		SET name = ?, price = ?, stock = ?, category_id = ?
 		WHERE id = ?
 	`
 
@@ -104,21 +119,19 @@ func (repo *ProductRepository) Update(product *models.Product) error {
 		product.Name,
 		product.Price,
 		product.Stock,
+		product.CategoryID,
 		product.ID,
 	)
 	if err != nil {
 		return err
 	}
-
 	rows, err := result.RowsAffected()
 	if err != nil {
 		return err
 	}
-
 	if rows == 0 {
 		return errors.New("produk tidak ditemukan")
 	}
-
 	return nil
 }
 

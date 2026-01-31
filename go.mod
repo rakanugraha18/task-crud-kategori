@@ -1,6 +1,6 @@
 module task-crud-kategori
 
-go 1.24.0
+go 1.24.0 // using go version go1.24.0 for development and build on render.com 
 
 require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
