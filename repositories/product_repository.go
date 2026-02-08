@@ -17,10 +17,16 @@ func NewProductRepository(db *sql.DB) *ProductRepository {
 // =======================
 // GET ALL PRODUCTS
 // =======================
-func (repo *ProductRepository) GetAll() ([]models.Product, error) {
+func (repo *ProductRepository) GetAll(name string) ([]models.Product, error) {
 	query := "SELECT id, name, price, stock FROM products"
+	args := []interface{}{}
 
-	rows, err := repo.db.Query(query)
+	if name != "" {
+		query += " WHERE name LIKE ?"
+		args = append(args, "%"+name+"%")
+	}
+
+	rows, err := repo.db.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}
